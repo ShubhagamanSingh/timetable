@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GATE CSE 2026 Strategic Planner</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom Scrollbar */
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background-color: rgba(203, 213, 225, 0.5); border-radius: 20px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 0.8); }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .transition-all-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Calendar Styles */
+        .calendar-day:hover { background-color: #EEF2FF; }
+        .calendar-day.today { border: 2px solid #4F46E5; font-weight: bold; }
+        .calendar-day.has-topic { background-color: #E0E7FF; color: #4338CA; }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px; width: 16px;
+            border-radius: 50%;
+            background: #4F46E5;
+            cursor: pointer;
+            margin-top: -6px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer; background: #E2E8F0;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 pb-20 lg:pb-12 flex flex-col">
+
+    <!-- Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm flex-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
+                    <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 leading-none">GATE '26</h1>
+                    <p class="text-xs text-slate-500 font-medium">Strategic Planner</p>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6">
+                <div class="text-right">
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Time Remaining</div>
+                    <div id="desktop-countdown" class="text-sm font-bold text-indigo-600 font-mono">Loading...</div>
+                </div>
+                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="text-right">
+                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Weekly Goal</div>
+                    <div id="desktop-hours" class="text-sm font-bold text-emerald-600 font-mono">0 Hours</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- LEFT COLUMN: Scheduler (Takes up 8 columns on Desktop) -->
+        <div class="lg:col-span-8 flex flex-col">
+            <!-- Mobile Stats -->
+            <div class="md:hidden grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Days Left</div>
+                    <div id="mobile-countdown-days" class="text-xl font-bold text-indigo-600">--</div>
+                </div>
+                <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-center">
+                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Wkly Hours</div>
+                    <div id="mobile-hours" class="text-xl font-bold text-emerald-600">--</div>
+                </div>
+            </div>
+
+            <!-- Day Slider Navigation -->
+            <div class="relative mb-6">
+                <div class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-100 to-transparent z-10 pointer-events-none"></div>
+                <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-100 to-transparent z-10 pointer-events-none"></div>
+                <div id="day-nav" class="flex overflow-x-auto no-scrollbar gap-2 py-1 px-1 snap-x scroll-smooth"></div>
+            </div>
+
+            <!-- Active Content Area -->
+            <div id="active-content" class="flex-1 flex flex-col gap-6"></div>
+        </div>
+
+        <!-- RIGHT COLUMN: Dashboard (Takes up 4 columns on Desktop, Hidden on Mobile unless toggled) -->
+        <div id="dashboard-sidebar" class="hidden lg:flex lg:col-span-4 flex-col gap-6">
+            <!-- Reusable Dashboard Content Function will populate this -->
+        </div>
+
+    </main>
+
+    <!-- Mobile Dashboard Toggle (Floating Action Button) -->
+    <button onclick="toggleMobileDashboard()" class="lg:hidden fixed bottom-6 right-6 bg-indigo-600 text-white p-4 rounded-full shadow-lg z-50 hover:bg-indigo-700 transition-colors shadow-indigo-500/30">
+        <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Mobile Dashboard Modal Overlay -->
+    <div id="mobile-dashboard-modal" class="fixed inset-0 bg-slate-900/50 z-40 hidden flex justify-end">
+        <div class="bg-slate-100 w-full max-w-md h-full overflow-y-auto p-6 flex flex-col gap-6 shadow-2xl transform transition-transform duration-300 translate-x-full" id="mobile-dashboard-content">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
+                <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- Dashboard Content Injected Here for Mobile -->
+        </div>
+    </div>
+
+    <script>
+        // --- Data ---
+        const SUBJECTS = [
+            "Data Structures", "Algorithms", "Operating Systems", 
+            "DBMS", "Computer Networks", "Theory of Computation", 
+            "Compiler Design", "Digital Logic", "COA", "Engineering Math"
+        ];
+
+        const LIBRARY_SCHEDULE = [
+            { start: "09:00", end: "15:00", activity: "Deep Work Session I", type: "study", duration: 6 },
+            { start: "15:00", end: "16:00", activity: "Lunch Break", type: "break", duration: 1 },
+            { start: "16:00", end: "22:00", activity: "Deep Work Session II", type: "study", duration: 6 },
+            { start: "22:00", end: "23:00", activity: "Dinner & Relax", type: "break", duration: 1 },
+            { start: "23:00", end: "00:00", activity: "Revision / Extra", type: "review", duration: 1 },
+        ];
+
+        const HOME_SCHEDULE = [
+            { start: "09:00", end: "12:30", activity: "Morning Study Block", type: "study", duration: 3.5 },
+            { start: "12:30", end: "14:30", activity: "Kitchen Duties & Lunch", type: "chore", duration: 2 },
+            { start: "14:30", end: "17:30", activity: "Afternoon Study Block", type: "study", duration: 3 },
+            { start: "17:30", end: "18:00", activity: "Tea / Walk", type: "break", duration: 0.5 },
+            { start: "18:00", end: "20:00", activity: "Evening Study Block", type: "study", duration: 2 },
+            { start: "20:00", end: "21:30", activity: "Dinner Prep & Eating", type: "chore", duration: 1.5 },
+            { start: "21:30", end: "23:00", activity: "Night Revision / Extra", type: "review", duration: 1.5 },
+        ];
+
+        const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const SHORT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+        const jsDay = new Date().getDay(); 
+        const currentDayIndex = jsDay === 0 ? 6 : jsDay - 1;
+
+        // --- State Management with LocalStorage ---
+        function loadState() {
+            const saved = localStorage.getItem('gatePlannerState');
+            const defaultState = {
+                activeDayIndex: currentDayIndex,
+                dayModes: {
+                    Monday: 'library', Tuesday: 'library', Wednesday: 'library',
+                    Thursday: 'library', Friday: 'library', Saturday: 'home', Sunday: 'home'
+                },
+                topicLogs: {}, 
+                subjectProgress: SUBJECTS.reduce((acc, sub) => ({...acc, [sub]: 0}), {}), // Default 0%
+                calendarMonth: new Date().getMonth(),
+                calendarYear: new Date().getFullYear()
+            };
+
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // Merge to ensure new fields exists if version changes
+                return { ...defaultState, ...parsed, activeDayIndex: currentDayIndex, calendarMonth: new Date().getMonth() };
+            }
+            return defaultState;
+        }
+
+        let state = loadState();
+
+        function saveState() {
+            localStorage.setItem('gatePlannerState', JSON.stringify(state));
+        }
+
+        // --- Logic ---
+
+        function toggleMobileDashboard() {
+            const modal = document.getElementById('mobile-dashboard-modal');
+            const content = document.getElementById('mobile-dashboard-content');
+            
+            if (modal.classList.contains('hidden')) {
+                // Open
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('translate-x-full');
+                }, 10);
+                renderDashboard(); // Update views
+            } else {
+                // Close
+                content.classList.add('translate-x-full');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function updateProgress(subject, value) {
+            state.subjectProgress[subject] = value;
+            saveState();
+            
+            // Update UI elements in both desktop and mobile if they exist
+            document.querySelectorAll(`[id^="prog-val-${subject.replace(/\s/g,'')}"]`).forEach(el => el.textContent = `${value}%`);
+            document.querySelectorAll(`[id^="prog-bar-${subject.replace(/\s/g,'')}"]`).forEach(el => el.style.width = `${value}%`);
+        }
+
+        function handleDateClick(day) {
+            const dateKey = `${state.calendarYear}-${state.calendarMonth}-${day}`;
+            const currentTopic = state.topicLogs?.[dateKey] || "";
+            const newTopic = prompt(`Log completed topic for ${state.calendarMonth+1}/${day}:`, currentTopic);
+            
+            if (newTopic !== null) {
+                if(!state.topicLogs) state.topicLogs = {};
+                state.topicLogs[dateKey] = newTopic;
+                saveState();
+                renderDashboard(); // Re-render both views
+            }
+        }
+
+        function changeMonth(delta) {
+            state.calendarMonth += delta;
+            if(state.calendarMonth > 11) { state.calendarMonth = 0; state.calendarYear++; }
+            if(state.calendarMonth < 0) { state.calendarMonth = 11; state.calendarYear--; }
+            renderDashboard(); // Re-render both views
+        }
+
+        // --- Rendering Helpers ---
+
+        function getColors(type) {
+            switch (type) {
+                case 'study': return 'bg-indigo-100 text-indigo-800 border-l-4 border-indigo-500';
+                case 'break': return 'bg-amber-50 text-amber-700 border-l-4 border-amber-400';
+                case 'chore': return 'bg-rose-50 text-rose-700 border-l-4 border-rose-400';
+                case 'review': return 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500';
+                default: return 'bg-gray-50 text-gray-700';
+            }
+        }
+
+        // --- Render Main Scheduler --- 
+        function renderNav() {
+            const navContainer = document.getElementById('day-nav');
+            const html = DAYS.map((day, index) => {
+                const isActive = index === state.activeDayIndex;
+                const isToday = index === currentDayIndex;
+                return `
+                    <button onclick="state.activeDayIndex=${index}; renderApp(); document.getElementById('day-nav').children[${index}].scrollIntoView({behavior:'smooth', inline:'center'})"
+                        class="flex-none px-6 py-3 rounded-full text-sm font-semibold transition-all-smooth snap-center whitespace-nowrap border ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}">
+                        ${isToday ? 'Today' : SHORT_DAYS[index]}
+                    </button>
+                `;
+            }).join('');
+            if (navContainer.innerHTML !== html) navContainer.innerHTML = html;
+        }
+
+        function renderActiveCard() {
+            const index = state.activeDayIndex;
+            const day = DAYS[index];
+            const mode = state.dayModes[day];
+            const schedule = mode === 'library' ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+            const subject = SUBJECTS[index % SUBJECTS.length];
+            const studyHours = schedule.reduce((acc, curr) => (curr.type === 'study' || curr.type === 'review') ? acc + curr.duration : acc, 0);
+
+            const cardHTML = `
+                <div class="animate-enter bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col flex-1 mx-auto w-full">
+                    <div class="p-6 ${mode === 'library' ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-rose-600'} text-white relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 text-white opacity-10 rotate-12"><i data-lucide="calendar" width="140" height="140"></i></div>
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h2 class="text-3xl font-bold mb-1">${day}</h2>
+                                    <div class="flex items-center gap-2 text-indigo-100 text-sm font-medium"><i data-lucide="laptop-2" class="w-4 h-4"></i><span>Focus: ${subject}</span></div>
+                                </div>
+                                <button onclick="state.dayModes['${day}'] = state.dayModes['${day}'] === 'library' ? 'home' : 'library'; saveState(); renderApp();" class="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-sm transition-all text-sm font-semibold border border-white/20">
+                                    <span>${mode === 'library' ? 'Library Mode' : 'Home Mode'}</span><i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-4 mt-6">
+                                <div class="bg-black/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                    <div class="text-xs text-white/70 uppercase font-bold tracking-wider">Total Study</div>
+                                    <div class="text-2xl font-bold leading-none mt-1">${studyHours} <span class="text-sm font-normal opacity-80">hrs</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 sm:p-6 bg-slate-50 flex-1">
+                        ${schedule.map(item => `
+                            <div class="flex items-start p-4 mb-3 rounded-lg text-sm transition-all hover:shadow-md bg-white ${getColors(item.type)}">
+                                <div class="mt-1 mr-4 opacity-70"><i data-lucide="${item.type === 'study' ? 'book-open' : item.type === 'break' ? 'coffee' : item.type === 'chore' ? 'utensils' : 'brain-circuit'}" class="w-5 h-5"></i></div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
+                                    <div class="text-xs opacity-90 flex items-center gap-3"><span class="uppercase tracking-wider font-semibold text-[10px]">${item.type}</span><span>${item.duration} hrs</span></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('active-content').innerHTML = cardHTML;
+        }
+
+        // --- Render Dashboard (Calendar + Progress) ---
+        function renderDashboard() {
+            // Render to both desktop sidebar and mobile modal if they exist
+            const containers = ['dashboard-sidebar', 'mobile-dashboard-content'];
+            
+            containers.forEach(targetId => {
+                const container = document.getElementById(targetId);
+                if (!container) return;
+                
+                // If dragging slider, don't re-render entire HTML to maintain focus/performance
+                if (document.activeElement.type === 'range' && container.contains(document.activeElement)) return;
+
+                // Calendar Logic
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const daysInMonth = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
+                const firstDay = new Date(state.calendarYear, state.calendarMonth, 1).getDay(); // 0 = Sun
+                
+                // Adjust for Mon start (0=Mon, 6=Sun)
+                const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+                
+                let calendarGrid = '';
+                for(let i = 0; i < startOffset; i++) calendarGrid += `<div></div>`;
+                for(let d = 1; d <= daysInMonth; d++) {
+                    const dateKey = `${state.calendarYear}-${state.calendarMonth}-${d}`;
+                    const hasLog = state.topicLogs?.[dateKey];
+                    const isToday = d === new Date().getDate() && state.calendarMonth === new Date().getMonth() && state.calendarYear === new Date().getFullYear();
+                    
+                    calendarGrid += `
+                        <div onclick="handleDateClick(${d})" class="calendar-day ${isToday ? 'today' : ''} ${hasLog ? 'has-topic' : ''} aspect-square flex flex-col items-center justify-center rounded-lg cursor-pointer text-sm relative transition-colors bg-slate-50 text-slate-600">
+                            ${d}
+                            ${hasLog ? `<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1"></div>` : ''}
+                        </div>
+                    `;
+                }
+
+                // Progress Logic
+                const progressHTML = SUBJECTS.map((sub, idx) => {
+                    const safeName = sub.replace(/\s/g,'');
+                    const val = state.subjectProgress[sub] || 0;
+                    // Add unique ID suffix based on container to prevent ID collisions
+                    const uniqueSuffix = targetId === 'dashboard-sidebar' ? '-desk' : '-mob';
+                    
+                    return `
+                        <div class="mb-4">
+                            <div class="flex justify-between text-xs font-semibold mb-1 text-slate-600">
+                                <span>${sub}</span>
+                                <span id="prog-val-${safeName}${uniqueSuffix}" class="text-indigo-600">${val}%</span>
+                            </div>
+                            <div class="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="prog-bar-${safeName}${uniqueSuffix}" class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: ${val}%"></div>
+                            </div>
+                            <input type="range" min="0" max="100" value="${val}" 
+                                oninput="updateProgress('${sub}', this.value)"
+                                class="w-full absolute -mt-3 opacity-0 cursor-pointer h-6"
+                            >
+                        </div>
+                    `;
+                }).join('');
+
+                const html = `
+                    <!-- Calendar Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                        <div class="flex justify-between items-center mb-4">
+                            <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                            <h3 class="font-bold text-slate-800">${monthNames[state.calendarMonth]} ${state.calendarYear}</h3>
+                            <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-slate-400 uppercase">
+                            <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1">
+                            ${calendarGrid}
+                        </div>
+                        <div class="mt-3 text-xs text-center text-slate-400">Tap a date to log covered topics</div>
+                    </div>
+
+                    <!-- Progress Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1">
+                        <div class="flex items-center gap-2 mb-4">
+                             <div class="bg-indigo-100 p-1.5 rounded text-indigo-600"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></div>
+                             <h3 class="font-bold text-slate-800">Syllabus Progress</h3>
+                        </div>
+                        <div class="overflow-y-auto max-h-[400px] pr-2 scrollbar-thin">
+                            ${progressHTML}
+                        </div>
+                    </div>
+                `;
+                
+                // If the mobile content already has the close button, we need to preserve it or append to it. 
+                // The mobile modal structure is: header (h2, btn) + content.
+                // But renderDashboard overwrites innerHTML.
+                // For Mobile Modal, we only want to inject the cards *after* the header.
+                // Simplified: Re-generate the full mobile dashboard content including header if targeting mobile.
+                
+                if (targetId === 'mobile-dashboard-content') {
+                     container.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
+                            <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        ${html}
+                     `;
+                } else {
+                     container.innerHTML = html;
+                }
+            });
+            
+            lucide.createIcons();
+        }
+
+        function renderApp() {
+            renderNav();
+            renderActiveCard();
+            renderDashboard();
+            
+            // Calc Totals
+            const totalHours = Object.keys(state.dayModes).reduce((acc, day) => {
+                const mode = state.dayModes[day];
+                const schedule = mode === 'library' ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+                return acc + schedule.reduce((sAcc, item) => (item.type==='study'||item.type==='review') ? sAcc+item.duration : sAcc, 0);
+            }, 0);
+            
+            document.getElementById('desktop-hours').textContent = `${totalHours} Hours`;
+            document.getElementById('mobile-hours').textContent = totalHours;
+            lucide.createIcons();
+        }
+
+        // --- Init ---
+        const updateTimer = () => {
+            const diff = new Date('2026-02-01T09:00:00') - new Date();
+            if(diff>0) {
+                const d = Math.floor(diff/(864e5)), h = Math.floor((diff/36e5)%24);
+                document.getElementById('desktop-countdown').textContent = `${d} Days : ${h} Hrs`;
+                document.getElementById('mobile-countdown-days').textContent = d;
+            }
+        };
+        updateTimer(); setInterval(updateTimer, 60000);
+        renderApp();
+        setTimeout(() => document.getElementById('day-nav').children[state.activeDayIndex]?.scrollIntoView({ block: 'nearest', inline: 'center' }), 100);
+
+    </script>
+</body>
+</html>
