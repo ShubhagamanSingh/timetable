@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="img/icon.png">
     <meta property="og:image" content="img/icon.png">
     <meta name="twitter:image" content="img/icon.png">
+    <link rel="manifest" href="manifest.json">
     <!-- Mobile Widget / PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -153,6 +154,10 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
+            <!-- Install Button (Hidden by default) -->
+            <button id="install-btn" onclick="installApp()" class="hidden w-full py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-slate-700 transition-colors">
+                <i data-lucide="download" class="w-5 h-5"></i> Install App to Home Screen
+            </button>
             <!-- Dashboard Content Injected Here for Mobile -->
         </div>
     </div>
@@ -550,6 +555,23 @@
         // Check for Widget Mode (?mode=widget)
         if (new URLSearchParams(window.location.search).get('mode') === 'widget') {
             document.body.classList.add('widget-mode');
+        }
+
+        // --- PWA Install Logic ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('install-btn');
+            if(btn) btn.classList.remove('hidden');
+        });
+
+        async function installApp() {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            if(outcome === 'accepted') document.getElementById('install-btn').classList.add('hidden');
         }
 
         renderApp();
