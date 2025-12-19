@@ -75,6 +75,30 @@
         body.widget-mode main { padding: 0 !important; display: block !important; width: 100% !important; max-width: 100% !important; }
         body.widget-mode #dashboard-sidebar { display: none !important; }
         body.widget-mode .animate-enter { box-shadow: none; border: none; margin: 0 !important; width: 100% !important; border-radius: 0 !important; }
+
+        /* Focus Mode 3D Animation */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .animate-spin-slow { animation: spin-3d 8s linear infinite; }
+        .animate-spin-reverse { animation: spin-3d-reverse 12s linear infinite; }
+        
+        @keyframes spin-3d {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(360deg) rotateY(180deg) rotateZ(360deg); }
+        }
+        @keyframes spin-3d-reverse {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(-360deg) rotateY(-180deg) rotateZ(-360deg); }
+        }
+
+        .atom-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800 pb-20 lg:pb-12 flex flex-col">
@@ -159,6 +183,34 @@
                 <i data-lucide="download" class="w-5 h-5"></i> Install App to Home Screen
             </button>
             <!-- Dashboard Content Injected Here for Mobile -->
+        </div>
+    </div>
+
+    <!-- Focus Mode Modal (Dynamic Box) -->
+    <div id="focus-modal" class="fixed inset-0 bg-slate-900/95 z-50 hidden flex flex-col items-center justify-center text-white p-6 backdrop-blur-sm transition-opacity duration-300">
+        <button onclick="closeFocusMode()" class="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+            <i data-lucide="x" class="w-8 h-8 text-white"></i>
+        </button>
+        
+        <!-- 3D Animation Container -->
+        <div class="relative w-64 h-64 mb-12 perspective-1000 flex items-center justify-center">
+            <div class="relative w-full h-full transform-style-3d animate-spin-slow">
+                <div class="atom-ring w-64 h-64 border-indigo-500/50" style="transform: rotateX(70deg)"></div>
+                <div class="atom-ring w-64 h-64 border-purple-500/50" style="transform: rotateY(70deg)"></div>
+                <div class="atom-ring w-64 h-64 border-emerald-500/50" style="transform: rotateX(-70deg)"></div>
+            </div>
+            <!-- Center Pulse -->
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="w-32 h-32 bg-indigo-600/20 rounded-full blur-xl animate-pulse"></div>
+            </div>
+            <div id="focus-icon" class="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]"></div>
+        </div>
+
+        <h2 id="focus-activity" class="text-3xl md:text-5xl font-bold text-center mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white"></h2>
+        <div id="focus-timer" class="text-5xl md:text-7xl font-mono font-bold text-indigo-400 tracking-wider drop-shadow-lg tabular-nums">00:00:00</div>
+        <p id="focus-range" class="mt-4 text-slate-400 text-lg font-medium tracking-wide"></p>
+        <div class="mt-8 flex items-center gap-2 text-sm text-slate-500">
+            <i data-lucide="screen-share" class="w-4 h-4"></i> Screen Wake Lock Active
         </div>
     </div>
 
@@ -389,7 +441,7 @@
                     <div class="p-4 sm:p-6 bg-slate-50 flex-1">
                         ${schedule.map(item => {
                             const active = isCurrent(item.start, item.end);
-                            const activeStyles = active ? 'ring-2 ring-indigo-600 ring-offset-2 scale-[1.02] shadow-lg z-10 relative' : 'hover:shadow-md';
+                            const activeStyles = active ? 'ring-2 ring-indigo-600 ring-offset-2 scale-[1.02] shadow-lg z-10 relative cursor-pointer' : 'hover:shadow-md';
                             
                             let remainingBadge = '';
                             if (active) {
@@ -407,7 +459,7 @@
                             }
 
                             return `
-                            <div class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)}">
+                            <div ${active ? 'onclick="openFocusMode()"' : ''} class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)}">
                                 ${remainingBadge}
                                 <div class="mr-4 opacity-70"><i data-lucide="${getIcon(item)}" class="w-5 h-5"></i></div>
                                 <div class="flex-1">
@@ -535,6 +587,91 @@
             document.getElementById('desktop-hours').textContent = `${totalHours} Hours`;
             document.getElementById('mobile-hours').textContent = totalHours;
             lucide.createIcons();
+        }
+
+        // --- Focus Mode & Wake Lock ---
+        let focusInterval;
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake Lock is active');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+                console.log('Wake Lock released');
+            }
+        }
+
+        function openFocusMode() {
+            // Find active item again to ensure fresh data
+            const index = state.activeDayIndex;
+            const day = DAYS[index];
+            const mode = state.dayModes[day];
+            const schedule = mode === CONSTANTS.MODES.LIBRARY ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+            
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            
+            const item = schedule.find(i => {
+                const [sh, sm] = i.start.split(':').map(Number);
+                const [eh, em] = i.end.split(':').map(Number);
+                const sMin = sh * 60 + sm;
+                const eMin = eh * 60 + em;
+                return eMin < sMin ? (currentMinutes >= sMin || currentMinutes < eMin) : (currentMinutes >= sMin && currentMinutes < eMin);
+            });
+
+            if (!item) return;
+
+            // Populate Modal
+            document.getElementById('focus-activity').textContent = item.activity;
+            document.getElementById('focus-range').textContent = `${item.start} - ${item.end}`;
+            
+            // Icon
+            const iconName = getIcon(item);
+            document.getElementById('focus-icon').innerHTML = `<i data-lucide="${iconName}" width="64" height="64"></i>`;
+            lucide.createIcons();
+
+            // Show Modal
+            document.getElementById('focus-modal').classList.remove('hidden');
+            requestWakeLock();
+
+            // Start Timer
+            const [eh, em] = item.end.split(':').map(Number);
+            let target = new Date();
+            target.setHours(eh, em, 0, 0);
+            // Handle overnight tasks (if end time is tomorrow relative to now)
+            if (target < new Date() && (eh * 60 + em) < currentMinutes) target.setDate(target.getDate() + 1);
+
+            clearInterval(focusInterval);
+            const updateFocusTimer = () => {
+                const diff = target - new Date();
+                if (diff <= 0) {
+                    closeFocusMode();
+                    return;
+                }
+                const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+                const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+                const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+                document.getElementById('focus-timer').textContent = `${h}:${m}:${s}`;
+            };
+            updateFocusTimer();
+            focusInterval = setInterval(updateFocusTimer, 1000);
+        }
+
+        function closeFocusMode() {
+            document.getElementById('focus-modal').classList.add('hidden');
+            clearInterval(focusInterval);
+            releaseWakeLock();
         }
 
         // --- Init ---
