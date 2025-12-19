@@ -305,7 +305,7 @@
                 case CONSTANTS.ACTIVITY_TYPES.BREAK: return 'bg-amber-50 text-amber-700 border-l-4 border-amber-400';
                 case CONSTANTS.ACTIVITY_TYPES.CHORE: return 'bg-rose-50 text-rose-700 border-l-4 border-rose-400';
                 case CONSTANTS.ACTIVITY_TYPES.REVIEW: return 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500';
-                case CONSTANTS.ACTIVITY_TYPES.REST: return 'bg-slate-800 text-slate-200 border-l-4 border-slate-600';
+                case CONSTANTS.ACTIVITY_TYPES.REST: return 'bg-slate-100 text-slate-700 border-l-4 border-slate-400';
                 default: return 'bg-gray-50 text-gray-700';
             }
         }
@@ -407,7 +407,7 @@
                             }
 
                             return `
-                            <div class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} bg-white ${getColors(item.type)}">
+                            <div class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)}">
                                 ${remainingBadge}
                                 <div class="mr-4 opacity-70"><i data-lucide="${getIcon(item)}" class="w-5 h-5"></i></div>
                                 <div class="flex-1">
