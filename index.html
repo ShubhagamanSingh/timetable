@@ -193,15 +193,11 @@
         </button>
         
         <!-- 3D Animation Container -->
-        <div class="relative w-64 h-64 mb-12 perspective-1000 flex items-center justify-center">
-            <div class="relative w-full h-full transform-style-3d animate-spin-slow">
-                <div class="atom-ring w-64 h-64 border-indigo-500/50" style="transform: rotateX(70deg)"></div>
-                <div class="atom-ring w-64 h-64 border-purple-500/50" style="transform: rotateY(70deg)"></div>
-                <div class="atom-ring w-64 h-64 border-emerald-500/50" style="transform: rotateX(-70deg)"></div>
-            </div>
+        <div class="relative w-64 h-64 mb-12 perspective-1000 flex items-center justify-center" id="focus-anim-wrapper">
+            <!-- Dynamic Animation Injected Here -->
             <!-- Center Pulse -->
-            <div class="absolute inset-0 flex items-center justify-center">
-                <div class="w-32 h-32 bg-indigo-600/20 rounded-full blur-xl animate-pulse"></div>
+            <div id="glow-wrapper" class="absolute inset-0 flex items-center justify-center">
+                <div id="focus-glow" class="w-32 h-32 bg-indigo-600/20 rounded-full blur-xl animate-pulse"></div>
             </div>
             <div id="focus-icon" class="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]"></div>
         </div>
@@ -622,6 +618,15 @@
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             
+            // Color Mapping
+            const typeColors = {
+                [CONSTANTS.ACTIVITY_TYPES.STUDY]: 'indigo',
+                [CONSTANTS.ACTIVITY_TYPES.BREAK]: 'amber',
+                [CONSTANTS.ACTIVITY_TYPES.CHORE]: 'rose',
+                [CONSTANTS.ACTIVITY_TYPES.REVIEW]: 'emerald',
+                [CONSTANTS.ACTIVITY_TYPES.REST]: 'sky'
+            };
+
             const item = schedule.find(i => {
                 const [sh, sm] = i.start.split(':').map(Number);
                 const [eh, em] = i.end.split(':').map(Number);
@@ -632,18 +637,76 @@
 
             if (!item) return;
 
+            const color = typeColors[item.type] || 'indigo';
+
             // Populate Modal
             document.getElementById('focus-activity').textContent = item.activity;
             document.getElementById('focus-range').textContent = `${item.start} - ${item.end}`;
             
+            // Dynamic Colors
+            document.getElementById('focus-activity').className = `text-3xl md:text-5xl font-bold text-center mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-${color}-200 to-white`;
+            document.getElementById('focus-timer').className = `text-5xl md:text-7xl font-mono font-bold text-${color}-400 tracking-wider drop-shadow-lg tabular-nums`;
+            document.getElementById('focus-glow').className = `w-32 h-32 bg-${color}-600/30 rounded-full blur-xl animate-pulse`;
+
+            // Unique 3D Animations
+            let animHTML = '';
+            if (item.type === CONSTANTS.ACTIVITY_TYPES.STUDY) {
+                // Atom Structure (Complex)
+                animHTML = `
+                    <div class="relative w-full h-full transform-style-3d animate-spin-slow">
+                        <div class="atom-ring w-64 h-64 border-${color}-500/50" style="transform: rotateX(70deg)"></div>
+                        <div class="atom-ring w-64 h-64 border-${color}-400/50" style="transform: rotateY(70deg)"></div>
+                        <div class="atom-ring w-64 h-64 border-${color}-300/50" style="transform: rotateX(-70deg)"></div>
+                    </div>`;
+            } else if (item.type === CONSTANTS.ACTIVITY_TYPES.BREAK) {
+                // Breathing/Floating (Relaxed)
+                animHTML = `
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <div class="absolute w-48 h-48 rounded-full border-4 border-${color}-400/30 animate-ping" style="animation-duration: 3s"></div>
+                        <div class="absolute w-56 h-56 rounded-full border-2 border-${color}-300/20 animate-pulse"></div>
+                    </div>`;
+            } else if (item.type === CONSTANTS.ACTIVITY_TYPES.CHORE) {
+                // Mechanical/Gears (Active)
+                animHTML = `
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <div class="absolute w-60 h-60 rounded-full border-4 border-dashed border-${color}-500/40 animate-spin-slow"></div>
+                        <div class="absolute w-40 h-40 rounded-full border-4 border-dotted border-${color}-400/60 animate-spin-reverse"></div>
+                    </div>`;
+            } else if (item.type === CONSTANTS.ACTIVITY_TYPES.REVIEW) {
+                // Radar/Scanning (Focus)
+                animHTML = `
+                    <div class="relative w-full h-full transform-style-3d animate-spin-slow">
+                        <div class="atom-ring w-64 h-64 border-4 border-${color}-500/60" style="transform: rotateX(80deg)"></div>
+                        <div class="atom-ring w-56 h-56 border-2 border-${color}-400/40" style="transform: rotateY(80deg)"></div>
+                    </div>`;
+            } else {
+                // Rest (Calm Orbit)
+                animHTML = `
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <div class="absolute w-64 h-64 rounded-full border border-${color}-300/20 animate-pulse"></div>
+                        <div class="absolute w-56 h-56 rounded-full border border-${color}-200/10" style="animation: spin-3d 20s linear infinite"></div>
+                    </div>`;
+            }
+            
+            // Inject Animation (keeping the glow and icon container)
+            const wrapper = document.getElementById('focus-anim-wrapper');
+            // Remove old animation div if exists (first child)
+            if(wrapper.firstElementChild && wrapper.firstElementChild.id !== 'glow-wrapper' && wrapper.firstElementChild.id !== 'focus-icon') wrapper.firstElementChild.remove();
+            wrapper.insertAdjacentHTML('afterbegin', animHTML);
+
             // Icon
             const iconName = getIcon(item);
-            document.getElementById('focus-icon').innerHTML = `<i data-lucide="${iconName}" width="64" height="64"></i>`;
+            document.getElementById('focus-icon').innerHTML = `<i data-lucide="${iconName}" width="64" height="64" class="text-${color}-100"></i>`;
             lucide.createIcons();
 
             // Show Modal
             document.getElementById('focus-modal').classList.remove('hidden');
             requestWakeLock();
+            
+            // Activate Fullscreen
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
 
             // Start Timer
             const [eh, em] = item.end.split(':').map(Number);
@@ -672,6 +735,9 @@
             document.getElementById('focus-modal').classList.add('hidden');
             clearInterval(focusInterval);
             releaseWakeLock();
+            if (document.fullscreenElement && document.exitFullscreen) {
+                document.exitFullscreen().catch(e => console.log(e));
+            }
         }
 
         // --- Init ---
