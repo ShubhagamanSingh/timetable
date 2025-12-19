@@ -1,0 +1,21 @@
+{
+    "name": "GATE CSE 2026 Strategic Planner",
+    "short_name": "GATE Planner",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#F1F5F9",
+    "theme_color": "#4F46E5",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "img/icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "img/icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
