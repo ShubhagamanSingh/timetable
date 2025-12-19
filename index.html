@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GATE CSE 2026 Strategic Planner</title>
+    <!-- Icons & Share Image -->
+    <link rel="icon" type="image/png" href="img/icon.png">
+    <link rel="apple-touch-icon" href="img/icon.png">
+    <meta property="og:image" content="img/icon.png">
+    <meta name="twitter:image" content="img/icon.png">
+    <!-- Mobile Widget / PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4F46E5">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -37,7 +46,8 @@
         
         /* Custom Range Slider */
         input[type=range] {
-            -webkit-appearance: none; 
+            -webkit-appearance: none;
+            appearance: none;
             background: transparent; 
         }
         input[type=range]::-webkit-slider-thumb {
@@ -54,6 +64,16 @@
             cursor: pointer; background: #E2E8F0;
             border-radius: 2px;
         }
+
+        /* Widget Mode Styles (Triggered by ?mode=widget) */
+        body.widget-mode { background-color: transparent !important; min-height: 0 !important; }
+        body.widget-mode header,
+        body.widget-mode #day-nav,
+        body.widget-mode .lg\:hidden.fixed,
+        body.widget-mode #mobile-dashboard-modal { display: none !important; }
+        body.widget-mode main { padding: 0 !important; display: block !important; width: 100% !important; max-width: 100% !important; }
+        body.widget-mode #dashboard-sidebar { display: none !important; }
+        body.widget-mode .animate-enter { box-shadow: none; border: none; margin: 0 !important; width: 100% !important; border-radius: 0 !important; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-800 pb-20 lg:pb-12 flex flex-col">
@@ -139,6 +159,21 @@
 
     <script>
         // --- Data ---
+        const CONSTANTS = {
+            EXAM_DATE: '2026-02-01T09:00:00',
+            MODES: {
+                LIBRARY: 'library',
+                HOME: 'home',
+            },
+            ACTIVITY_TYPES: {
+                STUDY: 'study',
+                BREAK: 'break',
+                CHORE: 'chore',
+                REVIEW: 'review',
+                REST: 'rest',
+            }
+        };
+
         const SUBJECTS = [
             "Data Structures", "Algorithms", "Operating Systems", 
             "DBMS", "Computer Networks", "Theory of Computation", 
@@ -146,21 +181,28 @@
         ];
 
         const LIBRARY_SCHEDULE = [
-            { start: "09:00", end: "15:00", activity: "Study Session I", type: "study", duration: 6 },
-            { start: "15:00", end: "16:00", activity: "Lunch Break", type: "break", duration: 1 },
-            { start: "16:00", end: "22:00", activity: "Study Session II", type: "study", duration: 6 },
-            { start: "22:00", end: "23:00", activity: "Dinner & Relax", type: "break", duration: 1 },
-            { start: "23:00", end: "00:00", activity: "Revision / Extra", type: "review", duration: 1 },
+            { start: "04:00", end: "06:00", activity: "Meditation & Exercise", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
+            { start: "06:00", end: "08:00", activity: "Strategy & Study Plan", type: CONSTANTS.ACTIVITY_TYPES.REVIEW, duration: 2 },
+            { start: "08:00", end: "09:00", activity: "Bath & Breakfast", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
+            { start: "09:00", end: "15:00", activity: "Study Session I", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 6 },
+            { start: "15:00", end: "16:00", activity: "Lunch Break", type: CONSTANTS.ACTIVITY_TYPES.BREAK, duration: 1 },
+            { start: "16:00", end: "21:30", activity: "Study Session II", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 5.5 },
+            { start: "21:30", end: "22:30", activity: "Dinner & Relax", type: CONSTANTS.ACTIVITY_TYPES.BREAK, duration: 1 },
+            { start: "22:30", end: "04:00", activity: "Sleep", type: CONSTANTS.ACTIVITY_TYPES.REST, duration: 5.5 },
         ];
 
         const HOME_SCHEDULE = [
-            { start: "09:00", end: "12:30", activity: "Morning Study Block", type: "study", duration: 3.5 },
-            { start: "12:30", end: "14:30", activity: "Kitchen Duties & Lunch", type: "chore", duration: 2 },
-            { start: "14:30", end: "17:30", activity: "Afternoon Study Block", type: "study", duration: 3 },
-            { start: "17:30", end: "18:00", activity: "Tea / Walk", type: "break", duration: 0.5 },
-            { start: "18:00", end: "20:00", activity: "Evening Study Block", type: "study", duration: 2 },
-            { start: "20:00", end: "21:30", activity: "Dinner Prep & Eating", type: "chore", duration: 1.5 },
-            { start: "21:30", end: "23:00", activity: "Night Revision / Extra", type: "review", duration: 1.5 },
+            { start: "04:00", end: "06:00", activity: "Meditation & Exercise", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
+            { start: "06:00", end: "08:00", activity: "Strategy & Study Plan", type: CONSTANTS.ACTIVITY_TYPES.REVIEW, duration: 2 },
+            { start: "08:00", end: "09:00", activity: "Bath & Breakfast", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
+            { start: "09:00", end: "12:30", activity: "Morning Study Block", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 3.5 },
+            { start: "12:30", end: "14:30", activity: "Kitchen Duties & Lunch", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
+            { start: "14:30", end: "17:30", activity: "Afternoon Study Block", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 3 },
+            { start: "17:30", end: "18:00", activity: "Tea / Walk", type: CONSTANTS.ACTIVITY_TYPES.BREAK, duration: 0.5 },
+            { start: "18:00", end: "20:00", activity: "Evening Study Block", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 2 },
+            { start: "20:00", end: "21:30", activity: "Dinner Prep & Eating", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1.5 },
+            { start: "21:30", end: "22:30", activity: "Night Revision / Extra", type: CONSTANTS.ACTIVITY_TYPES.REVIEW, duration: 1 },
+            { start: "22:30", end: "04:00", activity: "Sleep", type: CONSTANTS.ACTIVITY_TYPES.REST, duration: 5.5 },
         ];
 
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -175,8 +217,8 @@
             const defaultState = {
                 activeDayIndex: currentDayIndex,
                 dayModes: {
-                    Monday: 'library', Tuesday: 'library', Wednesday: 'library',
-                    Thursday: 'library', Friday: 'library', Saturday: 'home', Sunday: 'home'
+                    Monday: CONSTANTS.MODES.LIBRARY, Tuesday: CONSTANTS.MODES.LIBRARY, Wednesday: CONSTANTS.MODES.LIBRARY,
+                    Thursday: CONSTANTS.MODES.LIBRARY, Friday: CONSTANTS.MODES.LIBRARY, Saturday: CONSTANTS.MODES.HOME, Sunday: CONSTANTS.MODES.HOME
                 },
                 topicLogs: {}, 
                 subjectProgress: SUBJECTS.reduce((acc, sub) => ({...acc, [sub]: 0}), {}), // Default 0%
@@ -224,9 +266,10 @@
             state.subjectProgress[subject] = value;
             saveState();
             
-            // Update UI elements in both desktop and mobile if they exist
-            document.querySelectorAll(`[id^="prog-val-${subject.replace(/\s/g,'')}"]`).forEach(el => el.textContent = `${value}%`);
-            document.querySelectorAll(`[id^="prog-bar-${subject.replace(/\s/g,'')}"]`).forEach(el => el.style.width = `${value}%`);
+            // Use data attributes for robust selection across desktop/mobile
+            const safeName = subject.replace(/\s/g, '');
+            document.querySelectorAll(`[data-subject-progress-value="${safeName}"]`).forEach(el => el.textContent = `${value}%`);
+            document.querySelectorAll(`[data-subject-progress-bar="${safeName}"]`).forEach(el => el.style.width = `${value}%`);
         }
 
         function handleDateClick(day) {
@@ -253,12 +296,28 @@
 
         function getColors(type) {
             switch (type) {
-                case 'study': return 'bg-indigo-100 text-indigo-800 border-l-4 border-indigo-500';
-                case 'break': return 'bg-amber-50 text-amber-700 border-l-4 border-amber-400';
-                case 'chore': return 'bg-rose-50 text-rose-700 border-l-4 border-rose-400';
-                case 'review': return 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500';
+                case CONSTANTS.ACTIVITY_TYPES.STUDY: return 'bg-indigo-100 text-indigo-800 border-l-4 border-indigo-500';
+                case CONSTANTS.ACTIVITY_TYPES.BREAK: return 'bg-amber-50 text-amber-700 border-l-4 border-amber-400';
+                case CONSTANTS.ACTIVITY_TYPES.CHORE: return 'bg-rose-50 text-rose-700 border-l-4 border-rose-400';
+                case CONSTANTS.ACTIVITY_TYPES.REVIEW: return 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500';
+                case CONSTANTS.ACTIVITY_TYPES.REST: return 'bg-slate-800 text-slate-200 border-l-4 border-slate-600';
                 default: return 'bg-gray-50 text-gray-700';
             }
+        }
+
+        function getIcon(item) {
+            const act = item.activity.toLowerCase();
+            if (act.includes('meditation') || act.includes('exercise')) return 'dumbbell';
+            if (act.includes('strategy')) return 'target';
+            if (act.includes('bath') || act.includes('breakfast')) return 'coffee';
+            if (act.includes('lunch') || act.includes('dinner') || act.includes('eating')) return 'utensils';
+            if (act.includes('walk')) return 'footprints';
+            if (act.includes('sleep')) return 'moon';
+            
+            if (item.type === CONSTANTS.ACTIVITY_TYPES.STUDY) return 'book-open';
+            if (item.type === CONSTANTS.ACTIVITY_TYPES.BREAK) return 'coffee';
+            if (item.type === CONSTANTS.ACTIVITY_TYPES.CHORE) return 'home';
+            return 'brain-circuit';
         }
 
         // --- Render Main Scheduler --- 
@@ -281,13 +340,28 @@
             const index = state.activeDayIndex;
             const day = DAYS[index];
             const mode = state.dayModes[day];
-            const schedule = mode === 'library' ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
-            const subject = SUBJECTS[index % SUBJECTS.length];
-            const studyHours = schedule.reduce((acc, curr) => (curr.type === 'study' || curr.type === 'review') ? acc + curr.duration : acc, 0);
+            const schedule = mode === CONSTANTS.MODES.LIBRARY ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+            // Calculate a week index to rotate subjects so all 10 are covered over time
+            const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+            const subject = SUBJECTS[(index + currentWeek) % SUBJECTS.length];
+            const studyHours = schedule.reduce((acc, curr) => (curr.type === CONSTANTS.ACTIVITY_TYPES.STUDY || curr.type === CONSTANTS.ACTIVITY_TYPES.REVIEW) ? acc + curr.duration : acc, 0);
+
+            // Time checking logic for highlighting
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const isToday = index === currentDayIndex;
+            const isCurrent = (start, end) => {
+                if (!isToday) return false;
+                const [sh, sm] = start.split(':').map(Number);
+                const [eh, em] = end.split(':').map(Number);
+                const sMin = sh * 60 + sm;
+                const eMin = eh * 60 + em;
+                return eMin < sMin ? (currentMinutes >= sMin || currentMinutes < eMin) : (currentMinutes >= sMin && currentMinutes < eMin);
+            };
 
             const cardHTML = `
                 <div class="animate-enter bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col flex-1 mx-auto w-full">
-                    <div class="p-6 ${mode === 'library' ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-rose-600'} text-white relative overflow-hidden">
+                    <div class="p-6 ${mode === CONSTANTS.MODES.LIBRARY ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-rose-600'} text-white relative overflow-hidden">
                         <div class="absolute -right-6 -top-6 text-white opacity-10 rotate-12"><i data-lucide="calendar" width="140" height="140"></i></div>
                         <div class="relative z-10">
                             <div class="flex justify-between items-start mb-4">
@@ -295,8 +369,8 @@
                                     <h2 class="text-3xl font-bold mb-1">${day}</h2>
                                     <div class="flex items-center gap-2 text-indigo-100 text-sm font-medium"><i data-lucide="laptop-2" class="w-4 h-4"></i><span>Focus: ${subject}</span></div>
                                 </div>
-                                <button onclick="state.dayModes['${day}'] = state.dayModes['${day}'] === 'library' ? 'home' : 'library'; saveState(); renderApp();" class="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-sm transition-all text-sm font-semibold border border-white/20">
-                                    <span>${mode === 'library' ? 'Library Mode' : 'Home Mode'}</span><i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <button onclick="state.dayModes['${day}'] = state.dayModes['${day}'] === CONSTANTS.MODES.LIBRARY ? CONSTANTS.MODES.HOME : CONSTANTS.MODES.LIBRARY; saveState(); renderApp();" class="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg backdrop-blur-sm transition-all text-sm font-semibold border border-white/20">
+                                    <span>${mode === CONSTANTS.MODES.LIBRARY ? 'Library Mode' : 'Home Mode'}</span><i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                 </button>
                             </div>
                             <div class="flex items-center gap-4 mt-6">
@@ -308,129 +382,135 @@
                         </div>
                     </div>
                     <div class="p-4 sm:p-6 bg-slate-50 flex-1">
-                        ${schedule.map(item => `
-                            <div class="flex items-start p-4 mb-3 rounded-lg text-sm transition-all hover:shadow-md bg-white ${getColors(item.type)}">
-                                <div class="mt-1 mr-4 opacity-70"><i data-lucide="${item.type === 'study' ? 'book-open' : item.type === 'break' ? 'coffee' : item.type === 'chore' ? 'utensils' : 'brain-circuit'}" class="w-5 h-5"></i></div>
+                        ${schedule.map(item => {
+                            const active = isCurrent(item.start, item.end);
+                            const activeStyles = active ? 'ring-2 ring-indigo-600 ring-offset-2 scale-[1.02] shadow-lg z-10 relative' : 'hover:shadow-md';
+                            
+                            let remainingBadge = '';
+                            if (active) {
+                                const [sh, sm] = item.start.split(':').map(Number);
+                                const [eh, em] = item.end.split(':').map(Number);
+                                const sMin = sh * 60 + sm;
+                                const eMin = eh * 60 + em;
+                                let diff = (eMin < sMin) ? ((currentMinutes >= sMin) ? (24 * 60 - currentMinutes) + eMin : eMin - currentMinutes) : (eMin - currentMinutes);
+                                
+                                const h = Math.floor(diff / 60);
+                                const m = diff % 60;
+                                const timeText = h > 0 ? `${h}h ${m}m` : `${m}m`;
+                                const colorClass = diff < 30 ? 'from-rose-500 to-orange-500' : 'from-indigo-600 to-purple-600';
+                                remainingBadge = `<span class="absolute -top-2 -right-2 bg-gradient-to-r ${colorClass} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse border border-white/20 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i> ${timeText} Left</span>`;
+                            }
+
+                            return `
+                            <div class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} bg-white ${getColors(item.type)}">
+                                ${remainingBadge}
+                                <div class="mr-4 opacity-70"><i data-lucide="${getIcon(item)}" class="w-5 h-5"></i></div>
                                 <div class="flex-1">
-                                    <div class="flex justify-between font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
+                                    <div class="flex justify-between items-center font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
                                     <div class="text-xs opacity-90 flex items-center gap-3"><span class="uppercase tracking-wider font-semibold text-[10px]">${item.type}</span><span>${item.duration} hrs</span></div>
                                 </div>
                             </div>
-                        `).join('')}
+                        `}).join('')}
                     </div>
                 </div>
             `;
             document.getElementById('active-content').innerHTML = cardHTML;
         }
 
-        // --- Render Dashboard (Calendar + Progress) ---
-        function renderDashboard() {
-            // Render to both desktop sidebar and mobile modal if they exist
-            const containers = ['dashboard-sidebar', 'mobile-dashboard-content'];
+        // --- Dashboard Rendering ---
+
+        // Helper to generate dashboard HTML, promoting DRY principle
+        function getDashboardContentHTML() {
+            // Calendar Logic
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const daysInMonth = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
+            const firstDay = new Date(state.calendarYear, state.calendarMonth, 1).getDay(); // 0 = Sun
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
             
-            containers.forEach(targetId => {
-                const container = document.getElementById(targetId);
-                if (!container) return;
+            let calendarGrid = Array(startOffset).fill('<div></div>').join('');
+            for(let d = 1; d <= daysInMonth; d++) {
+                const dateKey = `${state.calendarYear}-${state.calendarMonth}-${d}`;
+                const hasLog = state.topicLogs?.[dateKey];
+                const isToday = d === new Date().getDate() && state.calendarMonth === new Date().getMonth() && state.calendarYear === new Date().getFullYear();
                 
-                // If dragging slider, don't re-render entire HTML to maintain focus/performance
-                if (document.activeElement.type === 'range' && container.contains(document.activeElement)) return;
-
-                // Calendar Logic
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                const daysInMonth = new Date(state.calendarYear, state.calendarMonth + 1, 0).getDate();
-                const firstDay = new Date(state.calendarYear, state.calendarMonth, 1).getDay(); // 0 = Sun
-                
-                // Adjust for Mon start (0=Mon, 6=Sun)
-                const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-                
-                let calendarGrid = '';
-                for(let i = 0; i < startOffset; i++) calendarGrid += `<div></div>`;
-                for(let d = 1; d <= daysInMonth; d++) {
-                    const dateKey = `${state.calendarYear}-${state.calendarMonth}-${d}`;
-                    const hasLog = state.topicLogs?.[dateKey];
-                    const isToday = d === new Date().getDate() && state.calendarMonth === new Date().getMonth() && state.calendarYear === new Date().getFullYear();
-                    
-                    calendarGrid += `
-                        <div onclick="handleDateClick(${d})" class="calendar-day ${isToday ? 'today' : ''} ${hasLog ? 'has-topic' : ''} aspect-square flex flex-col items-center justify-center rounded-lg cursor-pointer text-sm relative transition-colors bg-slate-50 text-slate-600">
-                            ${d}
-                            ${hasLog ? `<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1"></div>` : ''}
-                        </div>
-                    `;
-                }
-
-                // Progress Logic
-                const progressHTML = SUBJECTS.map((sub, idx) => {
-                    const safeName = sub.replace(/\s/g,'');
-                    const val = state.subjectProgress[sub] || 0;
-                    // Add unique ID suffix based on container to prevent ID collisions
-                    const uniqueSuffix = targetId === 'dashboard-sidebar' ? '-desk' : '-mob';
-                    
-                    return `
-                        <div class="mb-4">
-                            <div class="flex justify-between text-xs font-semibold mb-1 text-slate-600">
-                                <span>${sub}</span>
-                                <span id="prog-val-${safeName}${uniqueSuffix}" class="text-indigo-600">${val}%</span>
-                            </div>
-                            <div class="relative h-2 bg-slate-200 rounded-full overflow-hidden">
-                                <div id="prog-bar-${safeName}${uniqueSuffix}" class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: ${val}%"></div>
-                            </div>
-                            <input type="range" min="0" max="100" value="${val}" 
-                                oninput="updateProgress('${sub}', this.value)"
-                                class="w-full absolute -mt-3 opacity-0 cursor-pointer h-6"
-                            >
-                        </div>
-                    `;
-                }).join('');
-
-                const html = `
-                    <!-- Calendar Card -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                        <div class="flex justify-between items-center mb-4">
-                            <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                            <h3 class="font-bold text-slate-800">${monthNames[state.calendarMonth]} ${state.calendarYear}</h3>
-                            <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-slate-400 uppercase">
-                            <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1">
-                            ${calendarGrid}
-                        </div>
-                        <div class="mt-3 text-xs text-center text-slate-400">Tap a date to log covered topics</div>
-                    </div>
-
-                    <!-- Progress Card -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1">
-                        <div class="flex items-center gap-2 mb-4">
-                             <div class="bg-indigo-100 p-1.5 rounded text-indigo-600"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></div>
-                             <h3 class="font-bold text-slate-800">Syllabus Progress</h3>
-                        </div>
-                        <div class="overflow-y-auto max-h-[400px] pr-2 scrollbar-thin">
-                            ${progressHTML}
-                        </div>
+                calendarGrid += `
+                    <div onclick="handleDateClick(${d})" class="calendar-day ${isToday ? 'today' : ''} ${hasLog ? 'has-topic' : ''} aspect-square flex flex-col items-center justify-center rounded-lg cursor-pointer text-sm relative transition-colors bg-slate-50 text-slate-600">
+                        ${d}
+                        ${hasLog ? `<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1"></div>` : ''}
                     </div>
                 `;
-                
-                // If the mobile content already has the close button, we need to preserve it or append to it. 
-                // The mobile modal structure is: header (h2, btn) + content.
-                // But renderDashboard overwrites innerHTML.
-                // For Mobile Modal, we only want to inject the cards *after* the header.
-                // Simplified: Re-generate the full mobile dashboard content including header if targeting mobile.
-                
-                if (targetId === 'mobile-dashboard-content') {
-                     container.innerHTML = `
-                        <div class="flex justify-between items-center mb-2">
-                            <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
-                            <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
-                                <i data-lucide="x" class="w-5 h-5"></i>
-                            </button>
+            }
+
+            // Progress Logic using data-attributes instead of IDs
+            const progressHTML = SUBJECTS.map((sub) => {
+                const safeName = sub.replace(/\s/g,'');
+                const val = state.subjectProgress[sub] || 0;
+                return `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs font-semibold mb-1 text-slate-600">
+                            <span>${sub}</span>
+                            <span data-subject-progress-value="${safeName}" class="text-indigo-600">${val}%</span>
                         </div>
-                        ${html}
-                     `;
-                } else {
-                     container.innerHTML = html;
-                }
-            });
+                        <div class="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                            <div data-subject-progress-bar="${safeName}" class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: ${val}%"></div>
+                        </div>
+                        <input type="range" min="0" max="100" value="${val}" 
+                            oninput="updateProgress('${sub}', this.value)"
+                            class="w-full absolute -mt-3 opacity-0 cursor-pointer h-6">
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <h3 class="font-bold text-slate-800">${monthNames[state.calendarMonth]} ${state.calendarYear}</h3>
+                        <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-slate-400 uppercase">
+                        ${SHORT_DAYS.map(d => `<div>${d.slice(0,1)}</div>`).join('')}
+                    </div>
+                    <div class="grid grid-cols-7 gap-1">${calendarGrid}</div>
+                    <div class="mt-3 text-xs text-center text-slate-400">Tap a date to log covered topics</div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1">
+                    <div class="flex items-center gap-2 mb-4">
+                         <div class="bg-indigo-100 p-1.5 rounded text-indigo-600"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></div>
+                         <h3 class="font-bold text-slate-800">Syllabus Progress</h3>
+                    </div>
+                    <div class="overflow-y-auto max-h-[400px] pr-2 scrollbar-thin">${progressHTML}</div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const desktopSidebar = document.getElementById('dashboard-sidebar');
+            const mobileModalContent = document.getElementById('mobile-dashboard-content');
+
+            // If dragging slider, don't re-render to maintain focus/performance
+            if (document.activeElement.type === 'range' && (desktopSidebar.contains(document.activeElement) || mobileModalContent.contains(document.activeElement))) {
+                return;
+            }
+
+            const dashboardContentHTML = getDashboardContentHTML();
+
+            if (desktopSidebar) {
+                desktopSidebar.innerHTML = dashboardContentHTML;
+            }
+            
+            if (mobileModalContent) {
+                // For mobile, preserve the header and inject the content
+                mobileModalContent.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
+                        <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    ${dashboardContentHTML}
+                `;
+            }
             
             lucide.createIcons();
         }
@@ -443,8 +523,8 @@
             // Calc Totals
             const totalHours = Object.keys(state.dayModes).reduce((acc, day) => {
                 const mode = state.dayModes[day];
-                const schedule = mode === 'library' ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
-                return acc + schedule.reduce((sAcc, item) => (item.type==='study'||item.type==='review') ? sAcc+item.duration : sAcc, 0);
+                const schedule = mode === CONSTANTS.MODES.LIBRARY ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+                return acc + schedule.reduce((sAcc, item) => (item.type === CONSTANTS.ACTIVITY_TYPES.STUDY || item.type === CONSTANTS.ACTIVITY_TYPES.REVIEW) ? sAcc + item.duration : sAcc, 0);
             }, 0);
             
             document.getElementById('desktop-hours').textContent = `${totalHours} Hours`;
@@ -454,14 +534,24 @@
 
         // --- Init ---
         const updateTimer = () => {
-            const diff = new Date('2026-02-01T09:00:00') - new Date();
+            const diff = new Date(CONSTANTS.EXAM_DATE) - new Date();
             if(diff>0) {
                 const d = Math.floor(diff/(864e5)), h = Math.floor((diff/36e5)%24);
                 document.getElementById('desktop-countdown').textContent = `${d} Days : ${h} Hrs`;
                 document.getElementById('mobile-countdown-days').textContent = d;
             }
+            if(state.activeDayIndex === currentDayIndex) {
+                renderActiveCard(); 
+                lucide.createIcons();
+            }
         };
         updateTimer(); setInterval(updateTimer, 60000);
+
+        // Check for Widget Mode (?mode=widget)
+        if (new URLSearchParams(window.location.search).get('mode') === 'widget') {
+            document.body.classList.add('widget-mode');
+        }
+
         renderApp();
         setTimeout(() => document.getElementById('day-nav').children[state.activeDayIndex]?.scrollIntoView({ block: 'nearest', inline: 'center' }), 100);
 
