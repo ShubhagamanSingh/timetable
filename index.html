@@ -16,6 +16,11 @@
     <meta name="theme-color" content="#4F46E5">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Google Fonts -->
@@ -101,31 +106,40 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-100 text-slate-800 pb-20 lg:pb-12 flex flex-col">
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-200 pb-20 lg:pb-12 flex flex-col transition-colors duration-300">
+
+    <!-- Netlify Backup Form (Hidden) -->
+    <form name="backup" netlify hidden>
+        <input type="text" name="data" />
+        <input type="text" name="timestamp" />
+    </form>
 
     <!-- Navbar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm flex-none">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 shadow-sm flex-none transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
-                    <i data-lucide="brain-circuit" class="w-6 h-6"></i>
-                </div>
+                <img src="img/icon.png" class="w-10 h-10 rounded-lg shadow-sm object-cover" alt="Logo">
                 <div>
-                    <h1 class="text-xl font-bold text-slate-900 leading-none">GATE '26</h1>
-                    <p class="text-xs text-slate-500 font-medium">Strategic Planner</p>
+                    <h1 class="text-xl font-bold text-slate-900 dark:text-white leading-none">GATE '26</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Strategic Planner</p>
                 </div>
             </div>
             
             <div class="hidden md:flex items-center gap-6">
                 <div class="text-right">
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Time Remaining</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Time Remaining</div>
                     <div id="desktop-countdown" class="text-sm font-bold text-indigo-600 font-mono">Loading...</div>
                 </div>
-                <div class="h-8 w-px bg-slate-200"></div>
+                <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
                 <div class="text-right">
-                    <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Weekly Goal</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Weekly Goal</div>
                     <div id="desktop-hours" class="text-sm font-bold text-emerald-600 font-mono">0 Hours</div>
                 </div>
+                <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -136,12 +150,12 @@
         <div class="lg:col-span-8 flex flex-col">
             <!-- Mobile Stats -->
             <div class="md:hidden grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-center">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Days Left</div>
+                <div class="bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 text-center">
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">Days Left</div>
                     <div id="mobile-countdown-days" class="text-xl font-bold text-indigo-600">--</div>
                 </div>
-                <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-center">
-                    <div class="text-[10px] text-slate-400 uppercase font-bold tracking-wide">Wkly Hours</div>
+                <div class="bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800 text-center">
+                    <div class="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">Wkly Hours</div>
                     <div id="mobile-hours" class="text-xl font-bold text-emerald-600">--</div>
                 </div>
             </div>
@@ -171,9 +185,9 @@
 
     <!-- Mobile Dashboard Modal Overlay -->
     <div id="mobile-dashboard-modal" class="fixed inset-0 bg-slate-900/50 z-40 hidden flex justify-end">
-        <div class="bg-slate-100 w-full max-w-md h-full overflow-y-auto p-6 flex flex-col gap-6 shadow-2xl transform transition-transform duration-300 translate-x-full" id="mobile-dashboard-content">
+        <div class="bg-slate-100 dark:bg-slate-900 w-full max-w-md h-full overflow-y-auto p-6 flex flex-col gap-6 shadow-2xl transform transition-transform duration-300 translate-x-full" id="mobile-dashboard-content">
             <div class="flex justify-between items-center mb-2">
-                <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
+                <h2 class="text-xl font-bold text-slate-800 dark:text-white">My Dashboard</h2>
                 <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -202,11 +216,39 @@
             <div id="focus-icon" class="absolute inset-0 flex items-center justify-center text-white drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]"></div>
         </div>
 
+        <!-- Ambient Sound Player -->
+        <div class="mb-8 flex items-center gap-3 bg-white/10 p-2 pr-4 rounded-full backdrop-blur-md border border-white/10">
+            <button onclick="toggleAudio()" class="p-3 bg-white/20 hover:bg-white/30 rounded-full transition-colors flex-none">
+                <i id="audio-icon" data-lucide="play" class="w-5 h-5 text-white fill-current"></i>
+            </button>
+            <select id="audio-select" onchange="changeAudioSource(this.value)" class="bg-transparent text-white text-sm font-medium focus:outline-none cursor-pointer w-32">
+                <option value="" class="text-slate-800">No Sound</option>
+                <option value="audio/rain.mp3" class="text-slate-800">Rain</option>
+                <option value="audio/white_noise.mp3" class="text-slate-800">White Noise</option>
+                <option value="audio/lofi.mp3" class="text-slate-800">Lo-Fi Beats</option>
+            </select>
+        </div>
+
         <h2 id="focus-activity" class="text-3xl md:text-5xl font-bold text-center mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white"></h2>
         <div id="focus-timer" class="text-5xl md:text-7xl font-mono font-bold text-indigo-400 tracking-wider drop-shadow-lg tabular-nums">00:00:00</div>
         <p id="focus-range" class="mt-4 text-slate-400 text-lg font-medium tracking-wide"></p>
         <div class="mt-8 flex items-center gap-2 text-sm text-slate-500">
             <i data-lucide="screen-share" class="w-4 h-4"></i> Screen Wake Lock Active
+        </div>
+    </div>
+
+    <!-- Syllabus Checklist Modal -->
+    <div id="syllabus-modal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-enter border border-slate-200 dark:border-slate-800">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                <h3 id="syllabus-modal-title" class="text-xl font-bold text-slate-800 dark:text-white">Subject Name</h3>
+                <button onclick="closeSyllabusModal()" class="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-500">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="syllabus-modal-list" class="p-6 overflow-y-auto scrollbar-thin flex flex-col gap-1">
+                <!-- Checklist items injected here -->
+            </div>
         </div>
     </div>
 
@@ -232,6 +274,44 @@
             "DBMS", "Computer Networks", "Theory of Computation", 
             "Compiler Design", "Digital Logic", "COA", "Engineering Math"
         ];
+
+        const SYLLABUS_DATA = {
+            "Engineering Math": [
+                "Discrete Mathematics: Propositional and first order logic", "Sets, relations, functions, partial orders and lattices", "Monoids, Groups", "Graphs: connectivity, matching, colouring", "Combinatorics: counting, recurrence relations, generating functions",
+                "Linear Algebra: Matrices, determinants, system of linear equations", "Eigenvalues and eigenvectors, LU decomposition",
+                "Calculus: Limits, continuity and differentiability", "Maxima and minima, Mean value theorem, Integration",
+                "Probability and Statistics: Random variables", "Uniform, normal, exponential, Poisson and binomial distributions", "Mean, median, mode and standard deviation", "Conditional probability and Bayes theorem"
+            ],
+            "Digital Logic": [
+                "Boolean algebra", "Combinational and sequential circuits", "Minimization", "Number representations and computer arithmetic (fixed and floating point)"
+            ],
+            "COA": [
+                "Machine instructions and addressing modes", "ALU, data‐path and control unit", "Instruction pipelining, pipeline hazards", "Memory hierarchy: cache, main memory and secondary storage", "I/O interface (interrupt and DMA mode)"
+            ],
+            "Data Structures": [
+                "Programming in C", "Recursion", "Arrays, stacks, queues, linked lists", "Trees, binary search trees, binary heaps", "Graphs"
+            ],
+            "Algorithms": [
+                "Searching, sorting, hashing", "Asymptotic worst case time and space complexity", "Algorithm design techniques: greedy, dynamic programming and divide‐and‐conquer", "Graph traversals, minimum spanning trees, shortest paths"
+            ],
+            "Theory of Computation": [
+                "Regular expressions and finite automata", "Context-free grammars and push-down automata", "Regular and context-free languages, pumping lemma", "Turing machines and undecidability"
+            ],
+            "Compiler Design": [
+                "Lexical analysis, parsing, syntax-directed translation", "Runtime environments", "Intermediate code generation", "Local optimization", "Data flow analyses: constant propagation, liveness analysis, common sub expression elimination"
+            ],
+            "Operating Systems": [
+                "System calls, processes, threads, inter‐process communication", "Concurrency and synchronization, Deadlock", "CPU and I/O scheduling", "Memory management and virtual memory", "File systems"
+            ],
+            "DBMS": [
+                "ER‐model", "Relational model: relational algebra, tuple calculus, SQL", "Integrity constraints, normal forms", "File organization, indexing (e.g., B and B+ trees)", "Transactions and concurrency control"
+            ],
+            "Computer Networks": [
+                "Concept of layering: OSI and TCP/IP Protocol Stacks", "Basics of packet, circuit and virtual circuit- switching", "Data link layer: framing, error detection, Medium Access Control, Ethernet bridging",
+                "Routing protocols: shortest path, flooding, distance vector and link state routing", "Fragmentation and IP addressing, IPv4, CIDR notation", "Basics of IP support protocols (ARP, DHCP, ICMP), NAT",
+                "Transport layer: flow control and congestion control, UDP, TCP, sockets", "Application layer protocols: DNS, SMTP, HTTP, FTP, Email"
+            ]
+        };
 
         const LIBRARY_SCHEDULE = [
             { start: "04:00", end: "06:00", activity: "Meditation & Exercise", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
@@ -264,6 +344,19 @@
         const jsDay = new Date().getDay(); 
         const currentDayIndex = jsDay === 0 ? 6 : jsDay - 1;
 
+        // --- Dark Mode Logic ---
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
         // --- State Management with LocalStorage ---
         function loadState() {
             const saved = localStorage.getItem('gatePlannerState');
@@ -273,6 +366,7 @@
                     Monday: CONSTANTS.MODES.LIBRARY, Tuesday: CONSTANTS.MODES.LIBRARY, Wednesday: CONSTANTS.MODES.LIBRARY,
                     Thursday: CONSTANTS.MODES.LIBRARY, Friday: CONSTANTS.MODES.LIBRARY, Saturday: CONSTANTS.MODES.HOME, Sunday: CONSTANTS.MODES.HOME
                 },
+                checklistProgress: {},
                 topicLogs: {}, 
                 subjectProgress: SUBJECTS.reduce((acc, sub) => ({...acc, [sub]: 0}), {}), // Default 0%
                 calendarMonth: new Date().getMonth(),
@@ -325,6 +419,47 @@
             document.querySelectorAll(`[data-subject-progress-bar="${safeName}"]`).forEach(el => el.style.width = `${value}%`);
         }
 
+        function openSyllabusModal(subject) {
+            const topics = SYLLABUS_DATA[subject] || [];
+            const progress = state.checklistProgress[subject] || {};
+            
+            const listHTML = topics.map((topic) => {
+                const isChecked = progress[topic] ? 'checked' : '';
+                // Escape single quotes for the onclick handler
+                const safeTopic = topic.replace(/'/g, "\\'");
+                return `
+                    <label class="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700 group">
+                        <input type="checkbox" onchange="toggleTopic('${subject}', '${safeTopic}')" ${isChecked} class="mt-1 w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer">
+                        <span class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed group-hover:text-slate-900 dark:group-hover:text-white ${isChecked ? 'line-through text-slate-400 dark:text-slate-600' : ''}">${topic}</span>
+                    </label>
+                `;
+            }).join('');
+
+            document.getElementById('syllabus-modal-title').textContent = subject;
+            document.getElementById('syllabus-modal-list').innerHTML = listHTML || '<p class="text-slate-400 text-center py-4">No granular topics available.</p>';
+            document.getElementById('syllabus-modal').classList.remove('hidden');
+        }
+
+        function toggleTopic(subject, topic) {
+            if (!state.checklistProgress[subject]) state.checklistProgress[subject] = {};
+            if (state.checklistProgress[subject][topic]) {
+                delete state.checklistProgress[subject][topic];
+            } else {
+                state.checklistProgress[subject][topic] = true;
+            }
+            
+            const total = SYLLABUS_DATA[subject].length;
+            const checked = Object.keys(state.checklistProgress[subject]).length;
+            const percent = total === 0 ? 0 : Math.round((checked / total) * 100);
+            
+            updateProgress(subject, percent);
+            openSyllabusModal(subject); // Re-render to update styles
+        }
+
+        function closeSyllabusModal() {
+            document.getElementById('syllabus-modal').classList.add('hidden');
+        }
+
         function handleDateClick(day) {
             const dateKey = `${state.calendarYear}-${state.calendarMonth}-${day}`;
             const currentTopic = state.topicLogs?.[dateKey] || "";
@@ -349,12 +484,12 @@
 
         function getColors(type) {
             switch (type) {
-                case CONSTANTS.ACTIVITY_TYPES.STUDY: return 'bg-indigo-100 text-indigo-800 border-l-4 border-indigo-500';
-                case CONSTANTS.ACTIVITY_TYPES.BREAK: return 'bg-amber-50 text-amber-700 border-l-4 border-amber-400';
-                case CONSTANTS.ACTIVITY_TYPES.CHORE: return 'bg-rose-50 text-rose-700 border-l-4 border-rose-400';
-                case CONSTANTS.ACTIVITY_TYPES.REVIEW: return 'bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500';
-                case CONSTANTS.ACTIVITY_TYPES.REST: return 'bg-slate-100 text-slate-700 border-l-4 border-slate-400';
-                default: return 'bg-gray-50 text-gray-700';
+                case CONSTANTS.ACTIVITY_TYPES.STUDY: return 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 border-l-4 border-indigo-500';
+                case CONSTANTS.ACTIVITY_TYPES.BREAK: return 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-l-4 border-amber-400';
+                case CONSTANTS.ACTIVITY_TYPES.CHORE: return 'bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 border-l-4 border-rose-400';
+                case CONSTANTS.ACTIVITY_TYPES.REVIEW: return 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-l-4 border-emerald-500';
+                case CONSTANTS.ACTIVITY_TYPES.REST: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-l-4 border-slate-400';
+                default: return 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
             }
         }
 
@@ -381,7 +516,7 @@
                 const isToday = index === currentDayIndex;
                 return `
                     <button onclick="state.activeDayIndex=${index}; renderApp(); document.getElementById('day-nav').children[${index}].scrollIntoView({behavior:'smooth', inline:'center'})"
-                        class="flex-none px-6 py-3 rounded-full text-sm font-semibold transition-all-smooth snap-center whitespace-nowrap border ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105' : 'bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'}">
+                        class="flex-none px-6 py-3 rounded-full text-sm font-semibold transition-all-smooth snap-center whitespace-nowrap border ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105' : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300 hover:text-indigo-600 dark:hover:text-indigo-400'}">
                         ${isToday ? 'Today' : SHORT_DAYS[index]}
                     </button>
                 `;
@@ -413,7 +548,7 @@
             };
 
             const cardHTML = `
-                <div class="animate-enter bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col flex-1 mx-auto w-full">
+                <div class="animate-enter bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col flex-1 mx-auto w-full">
                     <div class="p-6 ${mode === CONSTANTS.MODES.LIBRARY ? 'bg-gradient-to-br from-blue-600 to-indigo-700' : 'bg-gradient-to-br from-orange-500 to-rose-600'} text-white relative overflow-hidden">
                         <div class="absolute -right-6 -top-6 text-white opacity-10 rotate-12"><i data-lucide="calendar" width="140" height="140"></i></div>
                         <div class="relative z-10">
@@ -434,7 +569,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="p-4 sm:p-6 bg-slate-50 flex-1">
+                    <div class="p-4 sm:p-6 bg-slate-50 dark:bg-slate-950 flex-1">
                         ${schedule.map(item => {
                             const active = isCurrent(item.start, item.end);
                             const activeStyles = active ? 'ring-2 ring-indigo-600 ring-offset-2 scale-[1.02] shadow-lg z-10 relative cursor-pointer' : 'hover:shadow-md';
@@ -451,15 +586,15 @@
                                 const m = diff % 60;
                                 const timeText = h > 0 ? `${h}h ${m}m` : `${m}m`;
                                 const colorClass = diff < 30 ? 'from-rose-500 to-orange-500' : 'from-indigo-600 to-purple-600';
-                                remainingBadge = `<span class="absolute -top-2 -right-2 bg-gradient-to-r ${colorClass} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse border border-white/20 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i> ${timeText} Left</span>`;
+                                remainingBadge = `<span class="absolute -top-2 -right-2 bg-gradient-to-r ${colorClass} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse border border-white/20 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i> <span id="active-badge-timer" data-start="${item.start}" data-end="${item.end}">${timeText} Left</span></span>`;
                             }
 
                             return `
-                            <div ${active ? 'onclick="openFocusMode()"' : ''} class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)}">
+                            <div ${active ? 'onclick="openFocusMode()"' : ''} class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)} dark:border-l-4 dark:border-opacity-100">
                                 ${remainingBadge}
                                 <div class="mr-4 opacity-70"><i data-lucide="${getIcon(item)}" class="w-5 h-5"></i></div>
                                 <div class="flex-1">
-                                    <div class="flex justify-between items-center font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
+                                    <div class="flex justify-between items-center font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
                                     <div class="text-xs opacity-90 flex items-center gap-3"><span class="uppercase tracking-wider font-semibold text-[10px]">${item.type}</span><span>${item.duration} hrs</span></div>
                                 </div>
                             </div>
@@ -487,7 +622,7 @@
                 const isToday = d === new Date().getDate() && state.calendarMonth === new Date().getMonth() && state.calendarYear === new Date().getFullYear();
                 
                 calendarGrid += `
-                    <div onclick="handleDateClick(${d})" class="calendar-day ${isToday ? 'today' : ''} ${hasLog ? 'has-topic' : ''} aspect-square flex flex-col items-center justify-center rounded-lg cursor-pointer text-sm relative transition-colors bg-slate-50 text-slate-600">
+                    <div onclick="handleDateClick(${d})" class="calendar-day ${isToday ? 'today' : ''} ${hasLog ? 'has-topic' : ''} aspect-square flex flex-col items-center justify-center rounded-lg cursor-pointer text-sm relative transition-colors bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                         ${d}
                         ${hasLog ? `<div class="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1"></div>` : ''}
                     </div>
@@ -500,39 +635,62 @@
                 const val = state.subjectProgress[sub] || 0;
                 return `
                     <div class="mb-4">
-                        <div class="flex justify-between text-xs font-semibold mb-1 text-slate-600">
-                            <span>${sub}</span>
+                        <div class="flex justify-between text-xs font-semibold mb-1 text-slate-600 dark:text-slate-400 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors" onclick="openSyllabusModal('${sub}')">
+                            <span class="flex items-center gap-1">${sub} <i data-lucide="list-checks" class="w-3 h-3"></i></span>
                             <span data-subject-progress-value="${safeName}" class="text-indigo-600">${val}%</span>
                         </div>
-                        <div class="relative h-2 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden cursor-pointer" onclick="openSyllabusModal('${sub}')">
                             <div data-subject-progress-bar="${safeName}" class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-300" style="width: ${val}%"></div>
                         </div>
-                        <input type="range" min="0" max="100" value="${val}" 
-                            oninput="updateProgress('${sub}', this.value)"
-                            class="w-full absolute -mt-3 opacity-0 cursor-pointer h-6">
                     </div>
                 `;
             }).join('');
 
-            return `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
-                        <h3 class="font-bold text-slate-800">${monthNames[state.calendarMonth]} ${state.calendarYear}</h3>
-                        <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 rounded"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+            // Backup Section
+            const backupHTML = `
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Data Management</h4>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="backupToNetlify()" id="btn-backup-netlify" class="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors text-sm font-medium shadow-sm">
+                            <i data-lucide="cloud-upload" class="w-4 h-4"></i> Backup to Cloud
+                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="exportState()" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+                                <i data-lucide="download" class="w-4 h-4"></i> Export
+                            </button>
+                            <button onclick="document.getElementById('import-file').click()" class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium shadow-sm">
+                                <i data-lucide="upload" class="w-4 h-4"></i> Import
+                            </button>
+                            <input type="file" id="import-file" accept=".json" class="hidden" onchange="importState(this)">
+                        </div>
+                        <button onclick="requestNotificationPermission()" class="w-full py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium shadow-sm flex items-center justify-center gap-2">
+                            <i data-lucide="bell" class="w-4 h-4"></i> Enable Notifications
+                        </button>
                     </div>
-                    <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-slate-400 uppercase">
+                    <p class="text-[10px] text-slate-400 text-center mt-2">Manage your progress data locally or on cloud</p>
+                </div>
+            `;
+
+            return `
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="changeMonth(-1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <h3 class="font-bold text-slate-800 dark:text-white">${monthNames[state.calendarMonth]} ${state.calendarYear}</h3>
+                        <button onclick="changeMonth(1)" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-600 dark:text-slate-300"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">
                         ${SHORT_DAYS.map(d => `<div>${d.slice(0,1)}</div>`).join('')}
                     </div>
                     <div class="grid grid-cols-7 gap-1">${calendarGrid}</div>
-                    <div class="mt-3 text-xs text-center text-slate-400">Tap a date to log covered topics</div>
+                    <div class="mt-3 text-xs text-center text-slate-400 dark:text-slate-500">Tap a date to log covered topics</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1">
+                <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-5 flex-1">
                     <div class="flex items-center gap-2 mb-4">
                          <div class="bg-indigo-100 p-1.5 rounded text-indigo-600"><i data-lucide="bar-chart-3" class="w-4 h-4"></i></div>
-                         <h3 class="font-bold text-slate-800">Syllabus Progress</h3>
+                         <h3 class="font-bold text-slate-800 dark:text-white">Syllabus Progress</h3>
                     </div>
                     <div class="overflow-y-auto max-h-[400px] pr-2 scrollbar-thin">${progressHTML}</div>
+                    ${backupHTML}
                 </div>
             `;
         }
@@ -556,7 +714,7 @@
                 // For mobile, preserve the header and inject the content
                 mobileModalContent.innerHTML = `
                     <div class="flex justify-between items-center mb-2">
-                        <h2 class="text-xl font-bold text-slate-800">My Dashboard</h2>
+                        <h2 class="text-xl font-bold text-slate-800 dark:text-white">My Dashboard</h2>
                         <button onclick="toggleMobileDashboard()" class="p-2 bg-white rounded-full text-slate-500 hover:text-slate-800">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
@@ -585,6 +743,69 @@
             lucide.createIcons();
         }
 
+        // --- Notifications ---
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notification");
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("Notifications Enabled", { body: "You will be notified before tasks end.", icon: "img/icon.png" });
+                    }
+                });
+            }
+        }
+
+        function checkNotifications() {
+            if (Notification.permission !== "granted") return;
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            // Check TODAY'S schedule, not necessarily the active view
+            const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0
+            const todayName = DAYS[todayIndex];
+            const mode = state.dayModes[todayName];
+            const schedule = mode === CONSTANTS.MODES.LIBRARY ? LIBRARY_SCHEDULE : HOME_SCHEDULE;
+
+            schedule.forEach(item => {
+                const [eh, em] = item.end.split(':').map(Number);
+                const endMinutes = eh * 60 + em;
+                if (endMinutes - currentMinutes === 5) new Notification("Upcoming Transition", { body: `5 minutes left for ${item.activity}`, icon: "img/icon.png" });
+                if (item.type === CONSTANTS.ACTIVITY_TYPES.BREAK && endMinutes === currentMinutes) new Notification("Break Over!", { body: "Time to get back to work!", icon: "img/icon.png" });
+            });
+        }
+
+        // --- Lightweight Badge Timer ---
+        function updateBadgeTimer() {
+            const el = document.getElementById('active-badge-timer');
+            if (!el) return;
+
+            const start = el.getAttribute('data-start');
+            const end = el.getAttribute('data-end');
+            
+            const now = new Date();
+            const currentSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            
+            const [sh, sm] = start.split(':').map(Number);
+            const [eh, em] = end.split(':').map(Number);
+            
+            const sSec = sh * 3600 + sm * 60;
+            const eSec = eh * 3600 + em * 60;
+            
+            let diff = (eSec < sSec) ? ((currentSeconds >= sSec) ? (24 * 3600 - currentSeconds) + eSec : eSec - currentSeconds) : (eSec - currentSeconds);
+            
+            if (diff <= 0) {
+                renderActiveCard();
+                lucide.createIcons();
+                return;
+            }
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = diff % 60;
+            el.textContent = (h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`) + ' Left';
+        }
+        setInterval(updateBadgeTimer, 1000);
+
         // --- Focus Mode & Wake Lock ---
         let focusInterval;
         let wakeLock = null;
@@ -606,6 +827,31 @@
                 wakeLock = null;
                 console.log('Wake Lock released');
             }
+        }
+
+        // --- Ambient Audio ---
+        const ambientAudio = new Audio();
+        ambientAudio.loop = true;
+
+        function toggleAudio() {
+            const icon = document.getElementById('audio-icon');
+            if (ambientAudio.paused) {
+                if(ambientAudio.src) {
+                    ambientAudio.play();
+                    icon.setAttribute('data-lucide', 'pause');
+                }
+            } else {
+                ambientAudio.pause();
+                icon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+
+        function changeAudioSource(src) {
+            ambientAudio.src = src;
+            if(src) { ambientAudio.play(); document.getElementById('audio-icon').setAttribute('data-lucide', 'pause'); }
+            else { ambientAudio.pause(); document.getElementById('audio-icon').setAttribute('data-lucide', 'play'); }
+            lucide.createIcons();
         }
 
         function openFocusMode() {
@@ -738,6 +984,77 @@
             if (document.fullscreenElement && document.exitFullscreen) {
                 document.exitFullscreen().catch(e => console.log(e));
             }
+            ambientAudio.pause();
+            document.getElementById('audio-icon').setAttribute('data-lucide', 'play');
+        }
+
+        // --- Netlify Backup Logic ---
+        function backupToNetlify() {
+            const btn = document.getElementById('btn-backup-netlify');
+            const originalContent = btn.innerHTML;
+            
+            // Loading State
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending...`;
+            lucide.createIcons();
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('form-name', 'backup');
+            formData.append('data', JSON.stringify(state));
+            formData.append('timestamp', new Date().toLocaleString());
+
+            fetch('/', {
+                method: 'POST',
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams(formData).toString()
+            })
+            .then(() => {
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Saved!`;
+                lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = originalContent; btn.disabled = false; lucide.createIcons(); }, 2000);
+            })
+            .catch((error) => {
+                console.error('Backup failed:', error);
+                btn.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4"></i> Error`;
+                lucide.createIcons();
+                setTimeout(() => { btn.innerHTML = originalContent; btn.disabled = false; lucide.createIcons(); }, 2000);
+            });
+        }
+
+        // --- Import / Export Logic ---
+        function exportState() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "gate_planner_backup_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importState(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedState = JSON.parse(e.target.result);
+                    if (importedState && typeof importedState === 'object') {
+                        state = { ...state, ...importedState };
+                        saveState();
+                        renderApp();
+                        alert('State restored successfully!');
+                    } else {
+                        alert('Invalid JSON file.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error parsing JSON file.');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
         }
 
         // --- Init ---
@@ -752,6 +1069,7 @@
                 renderActiveCard(); 
                 lucide.createIcons();
             }
+            checkNotifications();
         };
         updateTimer(); setInterval(updateTimer, 60000);
 
@@ -777,6 +1095,7 @@
             if(outcome === 'accepted') document.getElementById('install-btn').classList.add('hidden');
         }
 
+        initTheme();
         renderApp();
         setTimeout(() => document.getElementById('day-nav').children[state.activeDayIndex]?.scrollIntoView({ block: 'nearest', inline: 'center' }), 100);
 
