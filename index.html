@@ -125,7 +125,8 @@
                 </div>
             </div>
             
-            <div class="hidden md:flex items-center gap-6">
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-6">
                 <div class="text-right">
                     <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Time Remaining</div>
                     <div id="desktop-countdown" class="text-sm font-bold text-indigo-600 font-mono">Loading...</div>
@@ -136,6 +137,7 @@
                     <div id="desktop-hours" class="text-sm font-bold text-emerald-600 font-mono">0 Hours</div>
                 </div>
                 <div class="h-8 w-px bg-slate-200 dark:bg-slate-700"></div>
+                </div>
                 <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
                     <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
                     <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
@@ -316,7 +318,7 @@
         const LIBRARY_SCHEDULE = [
             { start: "04:00", end: "06:00", activity: "Meditation & Exercise", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
             { start: "06:00", end: "08:00", activity: "Strategy & Study Plan", type: CONSTANTS.ACTIVITY_TYPES.REVIEW, duration: 2 },
-            { start: "08:00", end: "09:00", activity: "Bath & Breakfast", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
+            { start: "08:00", end: "09:00", activity: "Morning Prep", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
             { start: "09:00", end: "15:00", activity: "Study Session I", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 6 },
             { start: "15:00", end: "16:00", activity: "Lunch Break", type: CONSTANTS.ACTIVITY_TYPES.BREAK, duration: 1 },
             { start: "16:00", end: "21:30", activity: "Study Session II", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 5.5 },
@@ -327,7 +329,7 @@
         const HOME_SCHEDULE = [
             { start: "04:00", end: "06:00", activity: "Meditation & Exercise", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
             { start: "06:00", end: "08:00", activity: "Strategy & Study Plan", type: CONSTANTS.ACTIVITY_TYPES.REVIEW, duration: 2 },
-            { start: "08:00", end: "09:00", activity: "Bath & Breakfast", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
+            { start: "08:00", end: "09:00", activity: "Morning Prep", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 1 },
             { start: "09:00", end: "12:30", activity: "Morning Study Block", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 3.5 },
             { start: "12:30", end: "14:30", activity: "Kitchen Duties & Lunch", type: CONSTANTS.ACTIVITY_TYPES.CHORE, duration: 2 },
             { start: "14:30", end: "17:30", activity: "Afternoon Study Block", type: CONSTANTS.ACTIVITY_TYPES.STUDY, duration: 3 },
@@ -497,7 +499,7 @@
             const act = item.activity.toLowerCase();
             if (act.includes('meditation') || act.includes('exercise')) return 'dumbbell';
             if (act.includes('strategy')) return 'target';
-            if (act.includes('bath') || act.includes('breakfast')) return 'coffee';
+            if (act.includes('prep') || act.includes('breakfast')) return 'coffee';
             if (act.includes('lunch') || act.includes('dinner') || act.includes('eating')) return 'utensils';
             if (act.includes('walk')) return 'footprints';
             if (act.includes('sleep')) return 'moon';
@@ -505,7 +507,7 @@
             if (item.type === CONSTANTS.ACTIVITY_TYPES.STUDY) return 'book-open';
             if (item.type === CONSTANTS.ACTIVITY_TYPES.BREAK) return 'coffee';
             if (item.type === CONSTANTS.ACTIVITY_TYPES.CHORE) return 'home';
-            return 'brain-circuit';
+            return 'custom-logo';
         }
 
         // --- Render Main Scheduler --- 
@@ -588,13 +590,18 @@
                                 const colorClass = diff < 30 ? 'from-rose-500 to-orange-500' : 'from-indigo-600 to-purple-600';
                                 remainingBadge = `<span class="absolute -top-2 -right-2 bg-gradient-to-r ${colorClass} text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg animate-pulse border border-white/20 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3"></i> <span id="active-badge-timer" data-start="${item.start}" data-end="${item.end}">${timeText} Left</span></span>`;
                             }
+                            
+                            const iconName = getIcon(item);
+                            const iconHTML = iconName === 'custom-logo' 
+                                ? `<img src="img/icon.png" class="w-5 h-5 object-contain opacity-80">` 
+                                : `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
 
                             return `
                             <div ${active ? 'onclick="openFocusMode()"' : ''} class="flex items-center p-4 mb-3 rounded-lg text-sm transition-all ${activeStyles} ${getColors(item.type)} dark:border-l-4 dark:border-opacity-100">
                                 ${remainingBadge}
-                                <div class="mr-4 opacity-70"><i data-lucide="${getIcon(item)}" class="w-5 h-5"></i></div>
+                                <div class="mr-4 opacity-70">${iconHTML}</div>
                                 <div class="flex-1">
-                                    <div class="flex justify-between items-center font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full">${item.start} - ${item.end}</span></div>
+                                    <div class="flex justify-between items-center font-bold text-base mb-1"><span>${item.activity}</span><span class="text-xs opacity-75 font-normal bg-white/50 dark:bg-black/20 px-2 py-0.5 rounded-full whitespace-nowrap">${item.start} - ${item.end}</span></div>
                                     <div class="text-xs opacity-90 flex items-center gap-3"><span class="uppercase tracking-wider font-semibold text-[10px]">${item.type}</span><span>${item.duration} hrs</span></div>
                                 </div>
                             </div>
@@ -942,7 +949,11 @@
 
             // Icon
             const iconName = getIcon(item);
-            document.getElementById('focus-icon').innerHTML = `<i data-lucide="${iconName}" width="64" height="64" class="text-${color}-100"></i>`;
+            if (iconName === 'custom-logo') {
+                document.getElementById('focus-icon').innerHTML = `<img src="img/icon.png" width="64" height="64" class="object-contain drop-shadow-2xl">`;
+            } else {
+                document.getElementById('focus-icon').innerHTML = `<i data-lucide="${iconName}" width="64" height="64" class="text-${color}-100"></i>`;
+            }
             lucide.createIcons();
 
             // Show Modal
